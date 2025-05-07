@@ -17,13 +17,25 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path,include
 from posts.views import *
+from users.views import *
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('',home_view,name='home'),
+    path('accounts/', include('allauth.urls')),
+    path('category/<str:tag>/',home_view, name='category'),
     path('post/create-post/',post_create_view, name='post-create'),
     path('post/delete-post/<uuid:pk>/',post_delete_view, name='post-delete'),
     path('post/edit-post/<uuid:pk>/',post_edit_view, name='post-edit'),
     path('post/post-page/<uuid:pk>/',post_page_view, name='post-page'),
+    path('profile/',profile_view,name='profile'),
+    path('<username>/',profile_view,name='userprofile'),
+    path('profile/edit/',profile_edit_view,name='profile-edit'),
+    path('profile/delete/',profile_delete_view,name='profile-delete')
     
-]
+   
+    
+] 
+urlpatterns +=static(settings.MEDIA_URL,document_root=settings.MEDIA_ROOT)
