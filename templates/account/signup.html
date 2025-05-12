@@ -23,10 +23,11 @@
                 {% csrf_token %}
                 {% element fields form=form unlabeled=True %}
                 {% endelement %}
-                {{ redirect_field }}
+               <input type="hidden" name="next" value="{% url 'profile-onboarding' %}">
+
             {% endslot %}
             {% slot actions %}
-                {% element button tags="prominent,signup" type="submit" %}
+                {% element button tags="prominent,signup"  type="submit" %}
                     {% trans "Sign Up" %}
                 {% endelement %}
             {% endslot %}

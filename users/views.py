@@ -6,29 +6,41 @@ from django.shortcuts import redirect
 from django.contrib.auth import logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.urls import reverse
 # Create your views here.
 
 
-def profile_view(request,username=None):
+
+@login_required
+def profile_view(request, username=None):
+    # If username is provided, check if it matches the logged-in user
     if username and request.user.username != username:
-        profile = get_object_or_404(User,username=username).profile
+        user = get_object_or_404(User, username=username)
+        profile = get_object_or_404(Profile, user=user)
     else:
-        try:
-            profile = request.user.profile
-        except:
-            raise Http404()
-        
-    return render(request,'users/profile.html',{'profile':profile})
+        # If no username, just fetch the logged-in user's profile
+        profile = request.user.profile  # Profile is now created automatically by the signal
+
+    return render(request, 'users/profile.html', {'profile': profile})
 
 @login_required
 def profile_edit_view(request):
     form = ProfileForm(instance=request.user.profile)
+
+    # Choose the template based on the path (do this early!)
+    if request.path == reverse('profile-onboarding'):
+        template = 'users/profile_onboarding.html'
+    else:
+        template = 'users/profile_edit.html'
+
+    # If the form is submitted
     if request.method == 'POST':
-        form = ProfileForm(request.POST,request.FILES,instance=request.user.profile)
+        form = ProfileForm(request.POST, request.FILES, instance=request.user.profile)
         if form.is_valid():
             form.save()
             return redirect('profile')
-    return render(request,'users/profile_edit.html',{'form':form})
+
+    return render(request, template, {'form': form})
 
 @login_required
 def profile_delete_view(request):

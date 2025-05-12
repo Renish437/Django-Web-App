@@ -5,7 +5,7 @@ from django.templatetags.static import static
 
 
 class Profile(models.Model):
-    user = models.OneToOneField(User,on_delete=models.CASCADE)
+    user = models.OneToOneField(User,on_delete=models.CASCADE,related_name='profile')
     image = models.ImageField(upload_to='avatars/',null=True,blank=True)
     realname = models.CharField(max_length=100,null=True,blank=True)
     email = models.EmailField(unique=True,null=True)

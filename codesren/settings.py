@@ -40,12 +40,12 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'django_cleanup.apps.CleanupConfig',
-    
+    'users.apps.UsersConfig',
 
     # Optional -- requires install using `django-allauth[socialaccount]`.
     'allauth.socialaccount',
     'posts',
-    'users'
+    # 'users'
 ]
 
 MIDDLEWARE = [
@@ -56,7 +56,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    
+     
      "allauth.account.middleware.AccountMiddleware",
 ]
 
