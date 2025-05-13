@@ -82,6 +82,63 @@ def post_edit_view(request,pk):
 def post_page_view(request,pk):
     # post = Post.objects.get(id=pk)
     post = get_object_or_404(Post,id=pk)
+    commentform = CommentCreateForm()
+    replyform = ReplyCreateForm()
+    
+    context = {
+        'post':post,
+        'commentform':commentform,
+        'replyform':replyform
+    }
   
-    return render(request,'posts/post_page.html',{'post':post})
+    return render(request,'posts/post_page.html',context)
 
+@login_required
+def comment_sent(request,pk):
+    post = get_object_or_404(Post,id=pk)
+    commentform = CommentCreateForm(request.POST)
+    if request.method == 'POST':
+        commentform = CommentCreateForm(request.POST)
+    if commentform.is_valid():
+        comment = commentform.save(commit=False)
+        comment.parent_post = post
+        comment.author = request.user
+        comment.save()
+        messages.success(request,'Comment sent successfully')
+    return redirect('post-page',pk=post.id)
+
+@login_required
+def comment_delete_view(request,pk):
+    
+    # post = Post.objects.get(id=pk)
+    post = get_object_or_404(Comment,id=pk,author=request.user)
+    if request.method == 'POST':
+        post.delete()
+        messages.success(request,'Comment deleted successfully')
+        return redirect('post-page',post.parent_post.id)
+    return render(request,'posts/comment_delete.html',{'comment':post})
+
+@login_required
+def reply_sent(request,pk):
+    comment = get_object_or_404(Comment,id=pk)
+    
+    if request.method == 'POST':
+        commentform = ReplyCreateForm(request.POST)
+    if commentform.is_valid():
+        reply = commentform.save(commit=False)
+        reply.parent_comment = comment
+        reply.author = request.user
+        reply.save()
+        messages.success(request,'Reply sent successfully')
+    return redirect('post-page',comment.parent_post.id)
+
+@login_required
+def reply_delete_view(request,pk):
+    
+    # post = Post.objects.get(id=pk)
+    reply = get_object_or_404(Reply,id=pk,author=request.user)
+    if request.method == 'POST':
+        reply.delete()
+        messages.success(request,'Reply deleted successfully')
+        return redirect('post-page',reply.parent_comment.parent_post.id)
+    return render(request,'posts/reply_delete.html',{'reply':reply})
