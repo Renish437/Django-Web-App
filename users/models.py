@@ -27,5 +27,6 @@ class Profile(models.Model):
         else:
             avatar= static('images/avatar_default.png')
         return avatar
+    
          
     

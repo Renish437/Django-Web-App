@@ -7,6 +7,7 @@ import requests
 from django.contrib import messages
 from .form import *
 from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
 # Create your views here.
 
 def home_view(request,tag=None):
@@ -104,8 +105,16 @@ def comment_sent(request,pk):
         comment.parent_post = post
         comment.author = request.user
         comment.save()
-        messages.success(request,'Comment sent successfully')
-    return redirect('post-page',pk=post.id)
+    replyform = ReplyCreateForm()
+    
+    context = {
+        'comment':comment,
+        'post':post,
+        'replyform':replyform
+    }
+    
+        # messages.success(request,'Comment sent successfully')
+    return render(request,'snippets/add_comment.html',context)
 
 @login_required
 def comment_delete_view(request,pk):
@@ -121,16 +130,23 @@ def comment_delete_view(request,pk):
 @login_required
 def reply_sent(request,pk):
     comment = get_object_or_404(Comment,id=pk)
+   
     
     if request.method == 'POST':
-        commentform = ReplyCreateForm(request.POST)
+            commentform = ReplyCreateForm(request.POST)
     if commentform.is_valid():
-        reply = commentform.save(commit=False)
-        reply.parent_comment = comment
-        reply.author = request.user
-        reply.save()
-        messages.success(request,'Reply sent successfully')
-    return redirect('post-page',comment.parent_post.id)
+            reply = commentform.save(commit=False)
+            reply.parent_comment = comment
+            reply.author = request.user
+            reply.save()
+    replyform = ReplyCreateForm()
+        # messages.success(request,'Reply sent successfully')
+    context = {
+            'reply':reply,
+            'comment':comment,
+            'replyform':replyform
+        }
+    return render(request,'snippets/add_reply.html',context)
 
 @login_required
 def reply_delete_view(request,pk):
@@ -142,3 +158,36 @@ def reply_delete_view(request,pk):
         messages.success(request,'Reply deleted successfully')
         return redirect('post-page',reply.parent_comment.parent_post.id)
     return render(request,'posts/reply_delete.html',{'reply':reply})
+def like_toggle(model):
+   def inner_func(func):
+        def wrapper(request,*args,**kwargs):
+            post = get_object_or_404(model,id=kwargs.get('pk'))
+            user_exist = post.like.filter(username=request.user.username).exists()
+    
+            if post.author != request.user:
+                if user_exist:
+                    post.like.remove(request.user)
+                else:
+                    post.like.add(request.user)
+            return func(request,post)
+            
+            
+        return wrapper
+   return inner_func
+
+ 
+@login_required
+@like_toggle(Post)
+def like_post(request,post):
+    return render(request,'snippets/like.html',{'post':post})
+
+@login_required
+@like_toggle(Comment)
+def like_comment(request,post):
+    return render(request,'snippets/like_comment.html',{'comment':post})
+@login_required
+@like_toggle(Reply)
+def like_reply(request,post):
+    return render(request,'snippets/like_reply.html',{'reply':post})
+
+    

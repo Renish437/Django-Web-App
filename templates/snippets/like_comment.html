@@ -1,0 +1,31 @@
+  {% load static %}
+  <div class="flex items-center gap-4 [&>a:hover]:underline">
+  {% if comment.like.count %}
+  <div class="flex items-center gap-1">
+                  {% if user in comment.like.all %}
+                  <img class='w-5' src="{% static 'images/fireheart_red.svg' %}" alt="image">
+                  {% else %}
+                  <img class='w-5' src="{% static 'images/fireheart.svg' %}" alt="image">
+                  {% endif %}
+                 
+
+              {{ comment.like.count }}
+              </div>
+  {% endif %}
+                 {% if user.is_authenticated and user != comment.author %}
+                
+                 <a class="cursor-pointer" hx-get="{% url 'like-comment' comment.id %}" 
+                 hx-target='closest div'
+                 hx-swap="outerHTML"
+                 >
+                    {% if user in comment.like.all %}
+                    <b>Liked</b>
+                     {% else %}
+                    Like
+                      {% endif %}
+                </a>
+                
+                    
+                
+                {% endif %}
+                </div>
