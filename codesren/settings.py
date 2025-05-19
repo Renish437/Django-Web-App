@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'allauth.account',
     'django_cleanup.apps.CleanupConfig',
     'users.apps.UsersConfig',
+        "django_htmx",
 
     # Optional -- requires install using `django-allauth[socialaccount]`.
     'allauth.socialaccount',
@@ -56,7 +57,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-     
+       "django_htmx.middleware.HtmxMiddleware",
      "allauth.account.middleware.AccountMiddleware",
 ]
 

@@ -3,6 +3,7 @@ from .models import *
 from django.forms import ModelForm
 from django import forms
 from bs4 import BeautifulSoup
+from django.db.models import Count
 import requests
 from django.contrib import messages
 from .form import *
@@ -17,8 +18,8 @@ def home_view(request,tag=None):
     else:
         posts = Post.objects.all()
     
-    categories = Tag.objects.all()
-    context = {'posts':posts,'categories':categories,'tag':tag}
+    
+    context = {'posts':posts,'tag':tag}
     
     return render(request,'posts/home.html',context)
 
@@ -85,11 +86,22 @@ def post_page_view(request,pk):
     post = get_object_or_404(Post,id=pk)
     commentform = CommentCreateForm()
     replyform = ReplyCreateForm()
+   
+    
+    if request.htmx:
+        if 'top' in request.GET:
+            # comments = post.comments.filter(like__isnull=False).distinct()
+            comments = post.comments.annotate(num_likes=Count('like')).filter(num_likes__gt=0).order_by('-num_likes')
+        else:
+            comments = post.comments.all()
+        return render(request,'snippets/loop_postpage_comments.html',{'comments':comments,'replyform':replyform})
+  
     
     context = {
         'post':post,
         'commentform':commentform,
-        'replyform':replyform
+        'replyform':replyform,
+       
     }
   
     return render(request,'posts/post_page.html',context)
