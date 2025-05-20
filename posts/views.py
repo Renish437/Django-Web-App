@@ -9,19 +9,65 @@ from django.contrib import messages
 from .form import *
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
+from django.core.paginator import Paginator,EmptyPage, PageNotAnInteger
 # Create your views here.
 
-def home_view(request,tag=None):
+def home_view(request, tag=None):
+    current_tag_object = None
+    ORDERING_FIELD = '-created' # Assuming 'created_at' is the correct field in your Post model
+
     if tag:
-        posts = Post.objects.filter(tags__slug=tag)
-        tag = get_object_or_404(Tag,slug=tag)
+        current_tag_object = get_object_or_404(Tag, slug=tag)
+        posts_list = Post.objects.filter(tags=current_tag_object).distinct().order_by(ORDERING_FIELD)
     else:
-        posts = Post.objects.all()
+        posts_list = Post.objects.all().order_by(ORDERING_FIELD)
+
+    paginator = Paginator(posts_list, 3) # Show 3 posts per page
+    page_number_str = request.GET.get('page', '1')
+
+    try:
+        requested_page_number = int(page_number_str)
+        current_page_obj = paginator.page(requested_page_number)
+    except (PageNotAnInteger, ValueError):
+        requested_page_number = 1
+        current_page_obj = paginator.page(1)
+    except EmptyPage:
+        if request.htmx and request.GET.get('page'):
+            return HttpResponse('') # Stop infinite scroll for HTMX if page is empty
+        # For a direct browser request to an out-of-range page,
+        # deliver last page. Or an empty page, depending on preference.
+        current_page_obj = paginator.page(paginator.num_pages) # Show last page
+
+    # Determine if the initial loader should be shown (for home.html)
+    # Condition:
+    # 1. There is actually a next page.
+    # OR
+    # 2. It's the first page of a category view AND that first page is full.
+    #    (This handles the case where a category has exactly `paginator.per_page` items)
     
+    is_first_page = current_page_obj.number == 1
+    is_category_page = current_tag_object is not None
+    # Check if the current page object list is full
+    is_current_page_full = len(current_page_obj.object_list) == paginator.per_page
+
+    # This flag is for the initial page load (home.html)
+    # It will show the loader if there's more, OR if it's page 1 of a category and it's full
+    display_initial_loader = current_page_obj.has_next() or \
+                             (is_category_page and is_first_page and is_current_page_full)
+
+    context = {
+        'posts': current_page_obj,
+        'tag': current_tag_object,
+        'page': current_page_obj.number, # Actual page number being served
+        'has_next': current_page_obj.has_next(), # For loop_home_posts.html (strictly for next page)
+        'display_initial_loader': display_initial_loader, # For home.html (optimistic loader)
+    }
+
+    if request.htmx and request.GET.get('page'): # Subsequent HTMX pagination requests
+        return render(request, 'snippets/loop_home_posts.html', context)
     
-    context = {'posts':posts,'tag':tag}
-    
-    return render(request,'posts/home.html',context)
+    # Initial page load (home or category)
+    return render(request, 'posts/home.html', context)
 
 
 

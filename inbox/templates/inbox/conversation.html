@@ -1,0 +1,66 @@
+{% load static %}
+<!-- Chat Header -->
+{% for participant in conversation.participants.all %}
+    {% if participant != request.user %}
+        <div class="p-4 bg-white border-b border-gray-200 flex items-center">
+            <div>
+                <img class="w-10 h-10 rounded-full object-cover" 
+                     src="{{ participant.profile.avatar }}" 
+                     alt="{{ participant.profile.name }}"
+                     onerror="this.src='{% static 'images/avatar_default.png' %}'">
+            </div>
+            <h3 class="ml-3 text-lg font-semibold text-gray-800">
+                {{ participant.profile.name }}
+                <div class="text-sm font-medium text-gray-400">@{{ participant.username }}</div>
+            </h3>
+        </div>
+    {% endif %}
+{% endfor %}
+
+<!-- Messages Area -->
+<div class="flex-1 p-4 overflow-y-auto bg-gray-50">
+    {% for message in conversation.messages.all %}
+        <div class="flex mb-4 {% if message.sender == request.user %}justify-end{% else %}justify-start{% endif %}">
+            {% if message.sender != request.user %}
+                <a href="{% url 'userprofile' message.sender.username %}">
+                    <img class="w-8 h-8 rounded-full object-cover" 
+                         src="{{ message.sender.profile.avatar }}" 
+                         alt="{{ message.sender.profile.name }}"
+                         onerror="this.src='{% static 'images/avatar_default.png' %}'">
+                </a>
+            {% endif %}
+            <div class="{% if message.sender == request.user %}ml-auto bg-blue-500 text-white{% else %}ml-3 bg-white text-gray-800{% endif %} max-w-[80%] rounded-lg p-3 shadow-sm">
+                <p class="text-sm font-medium">{{ message.sender.profile.name }}</p>
+                <p class="text-sm">{{ message.body }}</p>
+                <p class="text-xs {% if message.sender == request.user %}text-blue-100{% else %}text-gray-500{% endif %} mt-1">
+                    {{ message.created|date:"h:i A" }} ({{ message.created|timesince }} ago)
+                </p>
+            </div>
+            {% if message.sender == request.user %}
+                <a href="{% url 'userprofile' message.sender.username %}">
+                    <img class="w-8 h-8 rounded-full object-cover ml-3" 
+                         src="{{ message.sender.profile.avatar }}" 
+                         alt="{{ message.sender.profile.name }}"
+                         onerror="this.src='{% static 'images/avatar_default.png' %}'">
+                </a>
+            {% endif %}
+        </div>
+    {% empty %}
+        <p class="text-lg h-full text-gray-500 flex items-center justify-center text-center p-10 -mt-6">Select a conversation or create a new message.</p>
+    {% endfor %}
+</div>
+
+<!-- Message Input -->
+{% if conversation %}
+    <div class="p-4 bg-white border-t border-gray-200">
+        <form class="flex items-center gap-2" hx-post="#" hx-target="#chat-window" hx-swap="innerHTML">
+            <input type="text" name="body" placeholder="Type a message..." 
+                   class="flex-1 p-3 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+            <button type="submit" class="p-3 bg-blue-500 text-white rounded-r-lg hover:bg-blue-600 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                </svg>
+            </button>
+        </form>
+    </div>
+{% endif %}

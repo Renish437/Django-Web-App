@@ -1,11 +1,16 @@
 {% extends 'layouts/app.html' %}
 {% block content %}
+    {% for post in posts %}
+        {% include 'posts/post.html' %}
+    {% endfor %}
 
-      
-      {% for post in posts %}
-       {% include 'posts/post.html' %}
-      {% endfor %}
-        
-    
-
+  {% if display_initial_loader %}
+            <div hx-get="{% if tag %}{% url 'category' tag.slug %}{% else %}{% url 'home' %}{% endif %}?page={{ page|add:1 }}"
+                 hx-trigger="revealed"
+                 hx-target="this"
+                 hx-swap="outerHTML"
+                 class="flex items-center justify-center gap-2 py-4">
+               <div class="w-10 h-10 border-4 border-t-violet-500 border-gray-200 rounded-full animate-spin"></div> Loading...
+            </div>
+        {% endif %}
 {% endblock content %}

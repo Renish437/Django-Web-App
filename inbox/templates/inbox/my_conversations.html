@@ -1,0 +1,29 @@
+   <!-- Conversation List -->
+        <div class="divide-y divide-gray-200">
+            <!-- Example Conversation -->
+           
+           {% for c in my_conversations %}
+             <a href="{% url 'inbox' c.id %}" class="flex {% if conversation == c %}bg-gray-100{% endif %} items-center p-4 hover:bg-gray-100 transition duration-500 ease-in-out transition-colors">
+                
+                <div class="ml-3">
+                    
+                    {% for participant in c.participants.all %}
+                 
+                        {% if participant != request.user %}
+                       
+                  <div class="flex gap-2 items-center justify-center">
+                      <img class="w-10 h-10 rounded-full flex items-center justify-center " src="{{ participant.profile.avatar }}" alt="">
+               
+                        <p class="text-sm font-medium text-gray-800">{{participant.profile.name}}</p>
+                  </div>
+                        {% comment %} <p class="text-sm text-gray-500 truncate">Hey, loved your latest post!</p> {% endcomment %}
+                        {% endif %}
+                    {% endfor %}
+                        
+                </div>
+            </a>
+           {% endfor %}
+            
+          
+            <!-- Add more conversations dynamically -->
+        </div>

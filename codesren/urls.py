@@ -35,6 +35,7 @@ urlpatterns = [
     path('post/post-page/like-reply/<uuid:pk>',like_reply, name='like-reply'),
     path('profile/edit/', profile_edit_view, name='profile-edit'),
     path('profile/delete/', profile_delete_view, name='profile-delete'),
+    
     path('profile/', profile_view, name='profile'),
     path('profile/<username>/', profile_view, name='userprofile'),
     path('profile-onboarding/', profile_edit_view, name='profile-onboarding'),
@@ -42,6 +43,8 @@ urlpatterns = [
     path('comment/<uuid:pk>/delete',comment_delete_view,name='comment-delete'),
     path('reply/<uuid:pk>/sent',reply_sent,name='reply-sent'),
     path('reply/<uuid:pk>/delete',reply_delete_view,name='reply-delete'),
+    
+    path('inbox/',include('inbox.urls')),
     
    
     
